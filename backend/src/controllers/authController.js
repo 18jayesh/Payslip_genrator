@@ -6,9 +6,9 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const cookieOption = {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? "strict" : "lax",
-    maxAge: 60 * 60 * 1000
+    secure: true,
+    sameSite: "none",
+    maxAge: 60 * 60 * 1000,
 };
 
 const loginAdmin = async (req, res) => {
