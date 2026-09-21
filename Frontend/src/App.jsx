@@ -1,7 +1,7 @@
 import { Toaster } from "react-hot-toast";
 import { Routes, Route } from "react-router-dom";
 
-import Login from "./components/login";
+import Login from "../components/Login";
 import Dashboard from "./pages/Dashboard";
 import CreateCompany from "./pages/CreateCompany";
 import AddEmployee from "./pages/AddEmployee";
