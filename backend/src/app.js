@@ -29,7 +29,8 @@ connectDB();
 const allowedOrigins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://payslip-genrator.onrender.com"
+    "https://payslip-genrator.onrender.com",
+    "https://payslip-genrator-two.vercel.app"
 ];
 
 app.use(
