@@ -11,7 +11,8 @@ import {
     CheckCircle2,
     Columns3,
     UserRound,
-    IndianRupee
+    IndianRupee,
+    ExternalLink
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -76,6 +77,37 @@ const Templates = () => {
 
     const getTemplateNumber = (index) => {
         return String(index + 1).padStart(2, "0");
+    };
+
+    // ORIGINAL PDF FILES STORED IN Frontend/public
+    const getTemplatePdf = (template) => {
+        const key = String(template?.templateKey || "")
+            .toLowerCase()
+            .replace(/[\\s_-]+/g, "");
+
+        const name = String(template?.templateName || "").toLowerCase();
+
+        if (key.includes("hardeep") || name.includes("hardeep")) {
+            return "/HARDEEP SINGH SALARY SLIP.pdf";
+        }
+
+        if (key.includes("surjeet") || name.includes("surjeet")) {
+            return "/SURJEET SINGH SALARY SLIP.pdf";
+        }
+
+        if (key.includes("pankaj") || name.includes("pankaj")) {
+            return "/SAMPLE -PANKAJ KUMAR SALARY SLIP.pdf";
+        }
+
+        if (key.includes("amitesh") || name.includes("amitesh")) {
+            return "/Amitesh Kumar Yadav Salary slip New.pdf";
+        }
+
+        if (key.includes("format") || name.includes("format")) {
+        return "/Format 1.pdf";    
+    }
+
+        return null;
     };
 
     // =====================================================
@@ -203,61 +235,24 @@ const Templates = () => {
 
                             {/* SAMPLE DOCUMENT */}
 
-                            <div
-                                className={`mini-paper ${
-                                    template.layout?.orientation ===
-                                    "landscape"
-                                        ? "mini-landscape"
-                                        : "mini-portrait"
-                                }`}
-                            >
-
-                                <div className="mini-company">
-                                    COMPANY NAME
-                                </div>
-
-                                <div className="mini-title">
-                                    SALARY SLIP
-                                </div>
-
-                                <div className="mini-line" />
-
-                                <div className="mini-info-row">
-                                    <span>Employee Name</span>
-                                    <span>EMP001</span>
-                                </div>
-
-                                <div className="mini-line light" />
-
-                                <div className="mini-table">
-
-                                    <div className="mini-table-header">
-                                        <span>Earnings</span>
-                                        <span>Amount</span>
+                            {getTemplatePdf(template) ? (
+                                <div className="pdf-card-preview">
+                                    <iframe
+                                        src={`${getTemplatePdf(template)}#page=1&view=FitH`}
+                                        title={`${template.templateName} original PDF`}
+                                        className="pdf-preview-frame"
+                                    />
+                                    <div className="pdf-preview-overlay">
+                                        <Eye size={18} />
+                                        <span>Original Template</span>
                                     </div>
-
-                                    <div className="mini-table-row">
-                                        <span>Basic Salary</span>
-                                        <span>25,000</span>
-                                    </div>
-
-                                    <div className="mini-table-row">
-                                        <span>HRA</span>
-                                        <span>10,000</span>
-                                    </div>
-
-                                    <div className="mini-table-row">
-                                        <span>Total</span>
-                                        <span>35,000</span>
-                                    </div>
-
                                 </div>
-
-                                <div className="mini-footer">
-                                    This is a computer generated document
+                            ) : (
+                                <div className="pdf-missing-preview">
+                                    <FileText size={34} />
+                                    <span>Original PDF not found</span>
                                 </div>
-
-                            </div>
+                            )}
 
 
                             {/* CARD CONTENT */}
@@ -355,6 +350,7 @@ const Templates = () => {
             {selectedTemplate && (
                 <TemplatePreview
                     template={selectedTemplate}
+                    getTemplatePdf={getTemplatePdf}
                     onClose={() => setSelectedTemplate(null)}
                 />
             )}
@@ -368,266 +364,91 @@ const Templates = () => {
 // TEMPLATE PREVIEW
 // =====================================================
 
-const TemplatePreview = ({ template, onClose }) => {
-
-    const orientation =
-        template.layout?.orientation === "landscape"
-            ? "preview-landscape"
-            : "preview-portrait";
-
+const TemplatePreview = ({ template, onClose, getTemplatePdf }) => {
+    const pdfPath = getTemplatePdf(template);
 
     return (
         <div className="modal-overlay">
-
-            <div className="preview-modal">
+            <div className="preview-modal pdf-preview-modal">
 
                 {/* MODAL HEADER */}
-
                 <div className="preview-header">
-
                     <div>
-
                         <div className="preview-small-title">
-                            SALARY TEMPLATE SAMPLE
+                            ORIGINAL SALARY TEMPLATE
                         </div>
 
-                        <h2>
-                            {template.templateName}
-                        </h2>
-
+                        <h2>{template.templateName}</h2>
                     </div>
 
                     <button
                         className="close-button"
                         onClick={onClose}
+                        aria-label="Close preview"
                     >
                         <X size={21} />
                     </button>
-
                 </div>
 
-
-                {/* PREVIEW BODY */}
-
-                <div className="preview-scroll">
-
-                    <div
-                        className={`salary-paper ${orientation}`}
-                    >
-
-                        {/* COMPANY HEADER */}
-
-                        <div className="salary-header">
-
-                            {template.layout?.hasLogo && (
-                                <div className="sample-logo">
-                                    LOGO
-                                </div>
-                            )}
-
-                            <div className="company-section">
-
-                                <div className="company-name">
-                                    YOUR COMPANY NAME
-                                </div>
-
-                                <div className="company-address">
-                                    Company Address, City, State - 000000
-                                </div>
-
-                                <div className="company-contact">
-                                    Phone: +91 98765 43210 | Email:
-                                    company@example.com
-                                </div>
-
-                            </div>
-
+                {/* PDF PREVIEW */}
+                <div className="original-pdf-container">
+                    {pdfPath ? (
+                        <iframe
+                            src={`${pdfPath}#page=1&view=FitH`}
+                            title={`${template.templateName} original salary slip`}
+                            className="original-pdf-frame"
+                        />
+                    ) : (
+                        <div className="pdf-not-found">
+                            <FileText size={46} />
+                            <h3>Original PDF not found</h3>
+                            <p>
+                                Please check the PDF filename inside
+                                Frontend/public.
+                            </p>
                         </div>
-
-
-                        <div className="salary-title">
-                            SALARY SLIP
-                        </div>
-
-
-                        <div className="salary-period">
-                            Salary Month: September 2026
-                        </div>
-
-
-                        {/* EMPLOYEE INFORMATION */}
-
-                        <div className="section-title">
-                            Employee Information
-                        </div>
-
-                        <div className="employee-info-grid">
-
-                            {(
-                                template.employeeFields || []
-                            )
-                                .slice(0, 8)
-                                .map((field) => (
-
-                                    <div
-                                        className="employee-field"
-                                        key={field.fieldKey}
-                                    >
-
-                                        <div className="field-label">
-                                            {field.label}
-                                        </div>
-
-                                        <div className="field-value">
-
-                                            {getSampleValue(
-                                                field.type,
-                                                field.label
-                                            )}
-
-                                        </div>
-
-                                    </div>
-
-                                ))}
-
-                        </div>
-
-
-                        {/* SALARY TABLE */}
-
-                        <div className="section-title">
-                            Salary Details
-                        </div>
-
-                        <div className="salary-table">
-
-                            <div className="salary-table-head">
-
-                                <div>
-                                    Earnings
-                                </div>
-
-                                <div>
-                                    Amount
-                                </div>
-
-                                <div>
-                                    Deductions
-                                </div>
-
-                                <div>
-                                    Amount
-                                </div>
-
-                            </div>
-
-
-                            {buildSalaryRows(template).map(
-                                (row, index) => (
-
-                                    <div
-                                        className="salary-table-row"
-                                        key={index}
-                                    >
-
-                                        <div>
-                                            {row.earning}
-                                        </div>
-
-                                        <div className="amount">
-                                            {row.earningAmount}
-                                        </div>
-
-                                        <div>
-                                            {row.deduction}
-                                        </div>
-
-                                        <div className="amount">
-                                            {row.deductionAmount}
-                                        </div>
-
-                                    </div>
-
-                                )
-                            )}
-
-
-                            <div className="salary-total-row">
-
-                                <div>
-                                    NET SALARY
-                                </div>
-
-                                <div>
-                                    ₹35,000
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        {/* AMOUNT WORDS */}
-
-                        <div className="amount-words">
-
-                            <strong>
-                                Net Salary in Words:
-                            </strong>
-
-                            Thirty Five Thousand Rupees Only
-
-                        </div>
-
-
-                        {/* FOOTER */}
-
-                        {template.layout?.hasFooter && (
-                            <div className="salary-footer">
-                                {template.layout?.footerText ||
-                                    "This is a computer generated salary slip and does not require a signature."}
-                            </div>
-                        )}
-
-                    </div>
-
+                    )}
                 </div>
-
 
                 {/* MODAL FOOTER */}
-
                 <div className="preview-modal-footer">
-
                     <div className="preview-info">
-
                         <span>
                             Template Key:
-                            <strong>
-                                {template.templateKey}
-                            </strong>
+                            <strong>{template.templateKey}</strong>
                         </span>
 
                         <span>
                             Orientation:
                             <strong>
-                                {template.layout?.orientation}
+                                {template.layout?.orientation || "portrait"}
                             </strong>
                         </span>
-
                     </div>
 
-                    <button
-                        className="close-preview-button"
-                        onClick={onClose}
-                    >
-                        Close Preview
-                    </button>
+                    <div className="preview-footer-actions">
+                        {pdfPath && (
+                            <a
+                                href={pdfPath}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="open-pdf-button"
+                            >
+                                <ExternalLink size={16} />
+                                Open Original PDF
+                            </a>
+                        )}
 
+                        <button
+                            className="close-preview-button"
+                            onClick={onClose}
+                        >
+                            Close Preview
+                        </button>
+                    </div>
                 </div>
 
             </div>
-
         </div>
     );
 };
@@ -896,96 +717,57 @@ const styles = `
 }
 
 
-/* MINI PAPER */
+/* ORIGINAL PDF CARD PREVIEW */
 
-.mini-paper {
+.pdf-card-preview {
+    position: relative;
     margin: 18px;
-    padding: 16px;
-    background: #f8fafc;
-    color: #111827;
-    border-radius: 4px;
-    box-shadow:
-        0 10px 25px rgba(0, 0, 0, 0.25);
-    min-height: 230px;
+    height: 285px;
+    overflow: hidden;
+    border-radius: 5px;
+    background: #ffffff;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
 }
 
-.mini-landscape {
-    min-height: 190px;
+.pdf-preview-frame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #ffffff;
+    display: block;
 }
 
-.mini-portrait {
-    min-height: 250px;
-}
-
-.mini-company {
-    text-align: center;
-    font-size: 12px;
-    font-weight: 800;
-}
-
-.mini-title {
-    text-align: center;
-    font-size: 8px;
-    margin-top: 5px;
-    font-weight: 700;
-}
-
-.mini-line {
-    height: 1px;
-    background: #111827;
-    margin: 9px 0;
-}
-
-.mini-line.light {
-    background: #cbd5e1;
-}
-
-.mini-info-row {
+.pdf-preview-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 38px;
     display: flex;
-    justify-content: space-between;
-    font-size: 7px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    background: rgba(15, 20, 27, 0.88);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    pointer-events: none;
 }
 
-.mini-table {
-    margin-top: 9px;
-    border: 1px solid #94a3b8;
+.pdf-missing-preview {
+    margin: 18px;
+    height: 285px;
+    border: 1px dashed #3b4656;
+    border-radius: 6px;
+    background: #151b24;
+    color: #7f8a9a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 12px;
 }
-
-.mini-table-header,
-.mini-table-row {
-    display: grid;
-    grid-template-columns: 1fr 75px;
-}
-
-.mini-table-header {
-    font-size: 7px;
-    font-weight: 800;
-    background: #e5e7eb;
-}
-
-.mini-table-row {
-    font-size: 6.5px;
-    border-top: 1px solid #cbd5e1;
-}
-
-.mini-table-header span,
-.mini-table-row span {
-    padding: 4px 5px;
-}
-
-.mini-table-header span:last-child,
-.mini-table-row span:last-child {
-    text-align: right;
-    border-left: 1px solid #cbd5e1;
-}
-
-.mini-footer {
-    margin-top: 10px;
-    text-align: center;
-    font-size: 5.5px;
-    color: #64748b;
-}
-
 
 /* CARD BODY */
 
@@ -1171,201 +953,55 @@ const styles = `
 }
 
 
-/* SALARY PAPER */
+/* ORIGINAL PDF MODAL */
 
-.salary-paper {
+.pdf-preview-modal {
+    width: min(1250px, 100%);
+    height: 94vh;
+}
+
+.original-pdf-container {
+    flex: 1;
+    min-height: 0;
+    padding: 18px;
+    background: #0a0e13;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+}
+
+.original-pdf-frame {
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+    border: 0;
+    border-radius: 6px;
     background: #ffffff;
-    color: #111827;
-    margin: 0 auto;
-    box-shadow:
-        0 15px 45px rgba(0, 0, 0, 0.35);
-    padding: 35px;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.35);
 }
 
-.preview-portrait {
-    width: 794px;
-    min-height: 1123px;
-}
-
-.preview-landscape {
-    width: 1123px;
-    min-height: 794px;
-}
-
-
-/* HEADER */
-
-.salary-header {
+.pdf-not-found {
+    width: 100%;
+    min-height: 500px;
     display: flex;
-    align-items: center;
-    gap: 18px;
-    min-height: 75px;
-}
-
-.sample-logo {
-    width: 65px;
-    height: 65px;
-    border: 1px solid #9ca3af;
-    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
-    color: #6b7280;
+    gap: 10px;
+    color: #7f8a99;
+    border: 1px dashed #303947;
+    border-radius: 8px;
 }
 
-.company-section {
-    flex: 1;
+.pdf-not-found h3 {
+    margin: 5px 0 0;
+    color: #c9d0da;
 }
 
-.company-name {
-    font-size: 20px;
-    font-weight: 800;
+.pdf-not-found p {
+    margin: 0;
+    font-size: 12px;
 }
-
-.company-address,
-.company-contact {
-    font-size: 10px;
-    color: #4b5563;
-    margin-top: 4px;
-}
-
-.salary-title {
-    text-align: center;
-    font-size: 16px;
-    font-weight: 800;
-    margin-top: 20px;
-    border-top: 1px solid #111827;
-    border-bottom: 1px solid #111827;
-    padding: 8px;
-}
-
-.salary-period {
-    text-align: center;
-    font-size: 10px;
-    margin: 9px 0 20px;
-}
-
-
-/* SECTION */
-
-.section-title {
-    background: #eef1f4;
-    border: 1px solid #9ca3af;
-    padding: 7px 9px;
-    font-size: 11px;
-    font-weight: 800;
-    margin-top: 15px;
-}
-
-
-/* EMPLOYEE */
-
-.employee-info-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    border-left: 1px solid #9ca3af;
-    border-top: 1px solid #9ca3af;
-}
-
-.employee-field {
-    display: grid;
-    grid-template-columns: 45% 55%;
-    border-right: 1px solid #9ca3af;
-    border-bottom: 1px solid #9ca3af;
-    min-height: 34px;
-}
-
-.field-label,
-.field-value {
-    padding: 7px 8px;
-    font-size: 9px;
-}
-
-.field-label {
-    font-weight: 700;
-    background: #f7f8fa;
-    border-right: 1px solid #d1d5db;
-}
-
-.field-value {
-    color: #374151;
-}
-
-
-/* SALARY TABLE */
-
-.salary-table {
-    border-left: 1px solid #6b7280;
-    border-top: 1px solid #6b7280;
-    margin-top: 0;
-}
-
-.salary-table-head,
-.salary-table-row {
-    display: grid;
-    grid-template-columns:
-        1.6fr 0.8fr 1.6fr 0.8fr;
-}
-
-.salary-table-head {
-    font-size: 9px;
-    font-weight: 800;
-    background: #e5e7eb;
-}
-
-.salary-table-row {
-    font-size: 9px;
-}
-
-.salary-table-head > div,
-.salary-table-row > div {
-    padding: 8px;
-    border-right: 1px solid #6b7280;
-    border-bottom: 1px solid #6b7280;
-}
-
-.salary-table-row .amount,
-.salary-table-head > div:nth-child(2),
-.salary-table-head > div:nth-child(4) {
-    text-align: right;
-}
-
-.salary-total-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 11px 12px;
-    border-right: 1px solid #6b7280;
-    border-bottom: 1px solid #6b7280;
-    font-size: 10px;
-    font-weight: 800;
-}
-
-
-/* AMOUNT WORDS */
-
-.amount-words {
-    border: 1px solid #9ca3af;
-    border-top: 0;
-    padding: 10px;
-    font-size: 9px;
-}
-
-.amount-words strong {
-    margin-right: 8px;
-}
-
-
-/* FOOTER */
-
-.salary-footer {
-    margin-top: 40px;
-    padding-top: 9px;
-    border-top: 1px solid #d1d5db;
-    text-align: center;
-    font-size: 8px;
-    color: #6b7280;
-}
-
 
 /* MODAL FOOTER */
 
@@ -1402,6 +1038,32 @@ const styles = `
 }
 
 
+.preview-footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.open-pdf-button {
+    height: 38px;
+    padding: 0 15px;
+    border: 1px solid #333e4c;
+    border-radius: 7px;
+    background: #1a212b;
+    color: #e4e9ef;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.open-pdf-button:hover {
+    background: #222c39;
+}
+
 /* RESPONSIVE */
 
 @media (max-width: 800px) {
@@ -1422,10 +1084,12 @@ const styles = `
         padding: 15px;
     }
 
-    .salary-paper {
-        transform-origin: top left;
-        transform: scale(0.7);
-        margin-bottom: -250px;
+    .original-pdf-container {
+        padding: 10px;
+    }
+
+    .original-pdf-frame {
+        min-height: 500px;
     }
 
     .preview-modal-footer {
@@ -1436,6 +1100,17 @@ const styles = `
 
     .preview-info {
         flex-wrap: wrap;
+    }
+
+    .preview-footer-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .open-pdf-button,
+    .close-preview-button {
+        width: 100%;
+        justify-content: center;
     }
 
 }

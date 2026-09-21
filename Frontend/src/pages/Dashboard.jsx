@@ -5,10 +5,7 @@ import toast from "react-hot-toast";
 import {
   Building2,
   Users,
-  FileText,
-  IndianRupee,
   Plus,
-  ArrowRight,
   LayoutDashboard,
   Mail,
   Phone,
@@ -18,13 +15,39 @@ import {
   Pencil,
   UserPlus,
   ChevronRight,
-  Loader2,
   Moon,
   Sun,
   Files,
 } from "lucide-react";
 
 const API_URL = "http://localhost:3000";
+
+// =========================
+// HELPERS
+// =========================
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+};
+
+const getInitials = (name = "") => {
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+};
+
+// Stable color per company so every card has its own identity
+const AVATAR_TONES = 6;
+const getTone = (name = "") => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash * 31 + name.charCodeAt(i)) % 997;
+  }
+  return hash % AVATAR_TONES;
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -33,8 +56,8 @@ export default function Dashboard() {
   // THEME
   // =========================
   const [theme, setTheme] = useState(() => {
-    if (typeof window === "undefined") return "dark";
-    return localStorage.getItem("cc-theme") || "dark";
+    if (typeof window === "undefined") return "light";
+    return localStorage.getItem("cc-theme") || "light";
   });
 
   useEffect(() => {
@@ -79,594 +102,594 @@ export default function Dashboard() {
     fetchCompanies();
   }, []);
 
-  // =========================
-  // STATS
-  // =========================
-  const stats = [
-    {
-      title: "Total Companies",
-      value: companies.length,
-      icon: Building2,
-      description: "Companies added",
-    },
-    {
-      title: "Total Employees",
-      value: "0",
-      icon: Users,
-      description: "Employees registered",
-    },
-    {
-      title: "Payslips Generated",
-      value: "0",
-      icon: FileText,
-      description: "Payslips created",
-    },
-    {
-      title: "Total Payroll",
-      value: "₹0",
-      icon: IndianRupee,
-      description: "Monthly payroll",
-    },
-  ];
-
-  // =========================
-  // CLOSE MODAL
-  // =========================
-  const closeModal = () => {
-    setSelectedCompany(null);
-  };
-
-  // =========================
-  // EDIT COMPANY
-  // =========================
-  const handleEditCompany = () => {
+  // Close modal with Escape key
+  useEffect(() => {
     if (!selectedCompany) return;
 
+    const onKey = (e) => {
+      if (e.key === "Escape") setSelectedCompany(null);
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectedCompany]);
+
+  // =========================
+  // ACTIONS
+  // =========================
+  const closeModal = () => setSelectedCompany(null);
+
+  const handleEditCompany = () => {
+    if (!selectedCompany) return;
     navigate(`/EditCompany/${selectedCompany._id}`);
   };
 
-  // =========================
-  // ADD EMPLOYEE
-  // =========================
   const handleAddEmployee = () => {
     if (!selectedCompany) return;
-
     navigate(`/AddEmployee/${selectedCompany._id}`);
   };
 
-  // =========================
-  // MANAGE EMPLOYEES
-  // =========================
   const handleManageEmployees = () => {
     navigate("/ManageEmployees");
   };
 
-  // =========================
-  // MANAGE COMPANY EMPLOYEES
-  // =========================
   const handleManageCompanyEmployees = () => {
     if (!selectedCompany) return;
-
     navigate(`/ManageEmployees?companyId=${selectedCompany._id}`);
   };
 
-  // =========================
-  // VIEW TEMPLATES
-  // =========================
   const handleViewTemplates = () => {
     navigate("/Templates");
   };
 
-  return (
-    <div className="cc-root" data-theme={theme}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap');
+  const today = new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
-        .cc-root {
-          --font-serif: 'Fraunces', serif;
-          --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  return (
+    <div className="pg-root" data-theme={theme}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap');
+
+        .pg-root {
+          --font-display: 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif;
+          --font-body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
           min-height: 100vh;
-          font-family: var(--font-sans);
+          font-family: var(--font-body);
+          background: var(--bg);
+          color: var(--text);
           transition: background 0.25s ease, color 0.25s ease;
         }
 
-        .cc-root[data-theme="dark"] {
-          --bg: #14140f;
-          --surface: #1d1d17;
-          --surface-2: #26261e;
-          --surface-3: #302f25;
-          --text: #f1ede3;
-          --text-muted: #a79e8c;
-          --text-faint: #736a5a;
-          --border: #34332a;
-          --border-soft: #26251c;
-          --accent: #d9a455;
-          --accent-strong: #f0be79;
-          --accent-text: #1a1408;
-          --success: #6fbe95;
-          --success-bg: rgba(111, 190, 149, 0.12);
-          --danger: #e08683;
-          --shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.6);
-        }
-
-        .cc-root[data-theme="light"] {
-          --bg: #f6f3ec;
-          --surface: #ffffff;
-          --surface-2: #efeae0;
-          --surface-3: #e5dfd1;
-          --text: #1b1b18;
-          --text-muted: #6b6558;
-          --text-faint: #918a78;
-          --border: #ddd6c7;
-          --border-soft: #e8e2d4;
-          --accent: #9c6b2e;
-          --accent-strong: #7a4f1d;
-          --accent-text: #ffffff;
-          --success: #3f7a5c;
-          --success-bg: rgba(63, 122, 92, 0.08);
-          --danger: #b0413e;
-          --shadow: 0 20px 40px -24px rgba(27, 27, 24, 0.25);
-        }
-
-        .cc-root {
-          background: var(--bg);
-          color: var(--text);
-        }
-
-        .cc-root * {
+        .pg-root *,
+        .pg-root *::before,
+        .pg-root *::after {
           box-sizing: border-box;
         }
 
-        /* ===== HEADER ===== */
+        /* ---------- THEMES ---------- */
 
-        .db-header {
-          position: sticky;
-          top: 0;
-          z-index: 20;
-          background: var(--bg);
-          border-bottom: 1px solid var(--border-soft);
+        .pg-root[data-theme="light"] {
+          --bg: #f3f5fa;
+          --surface: #ffffff;
+          --surface-2: #f0f3f9;
+          --border: #dfe4ef;
+          --text: #0f1a33;
+          --text-muted: #56627f;
+          --text-faint: #8791ab;
+          --primary: #3653d6;
+          --primary-hover: #2b44b3;
+          --primary-text: #ffffff;
+          --primary-soft: rgba(54, 83, 214, 0.09);
+          --success: #12805c;
+          --success-soft: rgba(18, 128, 92, 0.1);
+          --muted-pill: #e9edf6;
+          --shadow: 0 1px 2px rgba(15, 26, 51, 0.05), 0 8px 24px -12px rgba(15, 26, 51, 0.18);
+          --shadow-lift: 0 14px 32px -14px rgba(15, 26, 51, 0.28);
+          --tone-0: #3653d6; --tone-0-bg: rgba(54, 83, 214, 0.12);
+          --tone-1: #0d8a72; --tone-1-bg: rgba(13, 138, 114, 0.12);
+          --tone-2: #b4477a; --tone-2-bg: rgba(180, 71, 122, 0.12);
+          --tone-3: #b7651b; --tone-3-bg: rgba(183, 101, 27, 0.12);
+          --tone-4: #6a49c8; --tone-4-bg: rgba(106, 73, 200, 0.12);
+          --tone-5: #1a7fa8; --tone-5-bg: rgba(26, 127, 168, 0.12);
         }
 
-        .db-header-inner {
-          max-width: 1180px;
+        .pg-root[data-theme="dark"] {
+          --bg: #0b1120;
+          --surface: #121a2e;
+          --surface-2: #19233c;
+          --border: #24304d;
+          --text: #e8edfa;
+          --text-muted: #97a3c3;
+          --text-faint: #66739a;
+          --primary: #7a97ff;
+          --primary-hover: #93abff;
+          --primary-text: #0a1230;
+          --primary-soft: rgba(122, 151, 255, 0.13);
+          --success: #4cc79b;
+          --success-soft: rgba(76, 199, 155, 0.13);
+          --muted-pill: #1f2a47;
+          --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px -14px rgba(0, 0, 0, 0.6);
+          --shadow-lift: 0 16px 36px -14px rgba(0, 0, 0, 0.75);
+          --tone-0: #8ea6ff; --tone-0-bg: rgba(142, 166, 255, 0.15);
+          --tone-1: #52d1b4; --tone-1-bg: rgba(82, 209, 180, 0.15);
+          --tone-2: #ee8fbb; --tone-2-bg: rgba(238, 143, 187, 0.15);
+          --tone-3: #eea15c; --tone-3-bg: rgba(238, 161, 92, 0.15);
+          --tone-4: #b39bff; --tone-4-bg: rgba(179, 155, 255, 0.15);
+          --tone-5: #68c4ea; --tone-5-bg: rgba(104, 196, 234, 0.15);
+        }
+
+        .pg-root button {
+          font-family: inherit;
+        }
+
+        .pg-root :focus-visible {
+          outline: 2px solid var(--primary);
+          outline-offset: 2px;
+        }
+
+        /* ---------- HEADER ---------- */
+
+        .pg-header {
+          position: sticky;
+          top: 0;
+          z-index: 30;
+          background: color-mix(in srgb, var(--bg) 82%, transparent);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          border-bottom: 1px solid var(--border);
+        }
+
+        .pg-header-inner {
+          max-width: 1240px;
           margin: 0 auto;
-          padding: 16px 24px;
+          padding: 14px 28px;
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 16px;
         }
 
-        .db-logo {
+        .pg-brand {
           display: flex;
           align-items: center;
           gap: 12px;
         }
 
-        .db-logo-icon {
-          width: 40px;
-          height: 40px;
-          border-radius: 12px;
-          background: var(--accent);
-          color: var(--accent-text);
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        .pg-brand-mark {
+          width: 38px;
+          height: 38px;
+          border-radius: 11px;
+          background: var(--primary);
+          color: var(--primary-text);
+          display: grid;
+          place-items: center;
           flex-shrink: 0;
         }
 
-        .db-title {
-          font-family: var(--font-serif);
+        .pg-brand-name {
+          font-family: var(--font-display);
           font-size: 18px;
-          font-weight: 600;
+          font-weight: 700;
+          letter-spacing: -0.02em;
           margin: 0;
-          letter-spacing: -0.01em;
+          line-height: 1.1;
         }
 
-        .db-subtitle {
+        .pg-brand-sub {
           font-size: 12px;
           color: var(--text-muted);
-          margin: 1px 0 0;
+          margin: 2px 0 0;
         }
 
-        .db-header-right {
+        .pg-header-right {
           display: flex;
           align-items: center;
           gap: 12px;
         }
 
-        .db-profile {
+        .pg-user {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 4px 14px 4px 4px;
+          border: 1px solid var(--border);
+          border-radius: 999px;
+          background: var(--surface);
+        }
+
+        .pg-user-avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 999px;
+          background: var(--primary-soft);
+          color: var(--primary);
+          display: grid;
+          place-items: center;
+          font-weight: 600;
+          font-size: 13px;
+        }
+
+        .pg-user-text {
           display: none;
-          text-align: right;
+          line-height: 1.2;
         }
 
         @media (min-width: 640px) {
-          .db-profile {
+          .pg-user-text {
             display: block;
           }
         }
 
-        .db-profile-name {
-          font-size: 13.5px;
-          font-weight: 500;
+        .pg-user-name {
+          font-size: 13px;
+          font-weight: 600;
           margin: 0;
         }
 
-        .db-profile-role {
+        .pg-user-role {
           font-size: 11.5px;
           color: var(--text-muted);
-          margin: 1px 0 0;
+          margin: 0;
         }
 
-        .db-avatar {
-          width: 38px;
-          height: 38px;
-          border-radius: 999px;
-          background: var(--surface-3);
-          color: var(--text);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 600;
-          font-size: 14px;
-          border: 1px solid var(--border);
-        }
-
-        .db-theme-btn {
+        .pg-icon-btn {
           width: 40px;
           height: 40px;
-          border-radius: 12px;
+          border-radius: 11px;
           border: 1px solid var(--border);
           background: var(--surface);
-          color: var(--accent);
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          color: var(--text-muted);
+          display: grid;
+          place-items: center;
           cursor: pointer;
-          transition: transform 0.25s, border-color 0.2s;
+          transition: color 0.15s, border-color 0.15s, background 0.15s;
         }
 
-        .db-theme-btn:hover {
-          border-color: var(--accent);
-          transform: rotate(20deg);
+        .pg-icon-btn:hover {
+          color: var(--primary);
+          border-color: var(--primary);
         }
 
-        .db-main {
-          max-width: 1180px;
+        /* ---------- MAIN ---------- */
+
+        .pg-main {
+          max-width: 1240px;
           margin: 0 auto;
-          padding: 32px 24px 64px;
+          padding: 28px 28px 72px;
         }
 
-        /* ===== WELCOME ===== */
+        /* ---------- HERO ---------- */
 
-        .db-welcome {
-          margin-bottom: 32px;
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
-          border-radius: 20px;
-          border: 1px solid var(--border-soft);
-          background: var(--surface);
-          padding: 28px;
-          box-shadow: var(--shadow);
+        .pg-hero {
+          position: relative;
+          overflow: hidden;
+          border-radius: 26px;
+          padding: 40px 40px;
+          background:
+            radial-gradient(900px 340px at 105% -10%, rgba(120, 150, 255, 0.35), transparent 60%),
+            linear-gradient(120deg, #0d1b40 0%, #17307a 55%, #21409f 100%);
+          color: #ffffff;
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 28px;
+          margin-bottom: 28px;
         }
 
-        @media (min-width: 768px) {
-          .db-welcome {
-            flex-direction: row;
+        @media (min-width: 900px) {
+          .pg-hero {
+            grid-template-columns: 1.15fr 0.85fr;
             align-items: center;
-            justify-content: space-between;
+            padding: 48px 52px;
           }
         }
 
-        .db-welcome-eyebrow {
-          font-size: 12.5px;
-          font-weight: 600;
-          color: var(--accent);
-          margin: 0 0 8px;
+        .pg-hero-date {
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.68);
+          margin: 0 0 14px;
         }
 
-        .db-welcome-title {
-          font-family: var(--font-serif);
-          font-size: 26px;
-          font-weight: 600;
+        .pg-hero-title {
+          font-family: var(--font-display);
+          font-size: clamp(30px, 4.2vw, 46px);
+          font-weight: 700;
+          letter-spacing: -0.03em;
+          line-height: 1.05;
           margin: 0;
-          letter-spacing: -0.01em;
         }
 
-        .db-welcome-desc {
-          font-size: 13.5px;
-          color: var(--text-muted);
-          margin: 8px 0 0;
-          max-width: 460px;
+        .pg-hero-desc {
+          font-size: 15px;
           line-height: 1.6;
+          color: rgba(255, 255, 255, 0.78);
+          margin: 14px 0 0;
+          max-width: 440px;
         }
 
-        .db-btn-primary {
+        .pg-hero-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-top: 28px;
+        }
+
+        .pg-btn {
           display: inline-flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-          flex-shrink: 0;
-          background: var(--accent);
-          color: var(--accent-text);
-          border: none;
           border-radius: 12px;
-          padding: 13px 22px;
-          font-size: 13.5px;
+          padding: 12px 20px;
+          font-size: 14px;
           font-weight: 600;
           cursor: pointer;
-          transition: filter 0.2s, transform 0.1s;
-          font-family: var(--font-sans);
+          border: 1px solid transparent;
+          transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
         }
 
-        .db-btn-primary:hover {
-          filter: brightness(1.08);
-        }
-
-        .db-btn-primary:active {
+        .pg-btn:active {
           transform: scale(0.98);
         }
 
-        /* ===== STATS ===== */
-
-        .db-stats-grid {
-          display: grid;
-          gap: 16px;
-          grid-template-columns: 1fr;
-          margin-bottom: 32px;
+        .pg-btn-light {
+          background: #ffffff;
+          color: #0d1b40;
         }
 
-        @media (min-width: 640px) {
-          .db-stats-grid {
-            grid-template-columns: 1fr 1fr;
-          }
+        .pg-btn-light:hover {
+          background: #e8eeff;
         }
 
-        @media (min-width: 1024px) {
-          .db-stats-grid {
-            grid-template-columns: repeat(4, 1fr);
-          }
+        .pg-btn-ghost {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.28);
+          color: #ffffff;
         }
 
-        .db-stat-card {
-          border-radius: 16px;
-          border: 1px solid var(--border-soft);
+        .pg-btn-ghost:hover {
+          background: rgba(255, 255, 255, 0.16);
+        }
+
+        .pg-btn-primary {
+          background: var(--primary);
+          color: var(--primary-text);
+        }
+
+        .pg-btn-primary:hover {
+          background: var(--primary-hover);
+        }
+
+        .pg-btn-outline {
           background: var(--surface);
+          border-color: var(--border);
+          color: var(--text);
+          padding: 9px 16px;
+          font-size: 13px;
+        }
+
+        .pg-btn-outline:hover {
+          border-color: var(--primary);
+          color: var(--primary);
+        }
+
+        /* Payslip sheet illustration */
+
+        .pg-sheet-wrap {
+          display: none;
+          position: relative;
+          justify-self: center;
+          width: 100%;
+          max-width: 330px;
+          height: 250px;
+        }
+
+        @media (min-width: 900px) {
+          .pg-sheet-wrap {
+            display: block;
+          }
+        }
+
+        .pg-sheet {
+          position: absolute;
+          inset: 0;
+          background: #ffffff;
+          border-radius: 14px;
           padding: 20px;
-          transition: border-color 0.2s, transform 0.15s;
+          box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.55);
+          transform: rotate(3deg);
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
         }
 
-        .db-stat-card:hover {
-          border-color: var(--accent);
-          transform: translateY(-2px);
+        .pg-sheet-back {
+          position: absolute;
+          inset: 0;
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.22);
+          transform: rotate(-4deg) translate(-10px, 6px);
         }
 
-        .db-stat-icon {
-          width: 42px;
-          height: 42px;
-          border-radius: 12px;
-          background: var(--success-bg);
-          color: var(--success);
+        .pg-sheet-head {
           display: flex;
           align-items: center;
-          justify-content: center;
+          gap: 10px;
+          padding-bottom: 14px;
+          border-bottom: 1px solid #e3e8f4;
+        }
+
+        .pg-sheet-logo {
+          width: 28px;
+          height: 28px;
+          border-radius: 8px;
+          background: #3653d6;
+        }
+
+        .pg-bar {
+          height: 7px;
+          border-radius: 4px;
+          background: #e3e8f4;
+        }
+
+        .pg-sheet-cols {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 18px;
+          flex: 1;
+        }
+
+        .pg-sheet-col {
+          display: flex;
+          flex-direction: column;
+          gap: 11px;
+        }
+
+        .pg-sheet-row {
+          display: flex;
+          justify-content: space-between;
+          gap: 10px;
+        }
+
+        .pg-sheet-total {
+          height: 34px;
+          border-radius: 9px;
+          background: #eaeffd;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 12px;
+        }
+
+        .pg-sheet-total .pg-bar:last-child {
+          background: #3653d6;
+          width: 56px;
+        }
+
+        /* ---------- LAYOUT ---------- */
+
+        .pg-layout {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 28px;
+          align-items: start;
+        }
+
+        @media (min-width: 1040px) {
+          .pg-layout {
+            grid-template-columns: minmax(0, 1fr) 320px;
+          }
+
+          .pg-side {
+            position: sticky;
+            top: 92px;
+          }
+        }
+
+        .pg-section-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
           margin-bottom: 18px;
         }
 
-        .db-stat-title {
-          font-size: 13px;
-          color: var(--text-muted);
+        .pg-section-title {
+          font-family: var(--font-display);
+          font-size: 22px;
+          font-weight: 600;
+          letter-spacing: -0.02em;
           margin: 0;
         }
 
-        .db-stat-value {
-          font-family: var(--font-serif);
-          font-size: 26px;
-          font-weight: 600;
-          margin: 4px 0 0;
-        }
-
-        .db-stat-desc {
-          font-size: 11.5px;
-          color: var(--text-faint);
-          margin: 4px 0 0;
-        }
-
-        /* ===== SECTIONS ===== */
-
-        .db-section {
-          margin-bottom: 32px;
-        }
-
-        .db-section-head {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          margin-bottom: 20px;
-        }
-
-        @media (min-width: 640px) {
-          .db-section-head {
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-          }
-        }
-
-        .db-section-title {
-          font-size: 17px;
-          font-weight: 600;
-          margin: 0;
-        }
-
-        .db-section-desc {
-          font-size: 13px;
-          color: var(--text-muted);
-          margin: 3px 0 0;
-        }
-
-        .db-btn-secondary {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          border: 1px solid var(--border);
-          background: var(--surface);
-          color: var(--text);
-          border-radius: 12px;
-          padding: 10px 16px;
-          font-size: 13px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: border-color 0.2s;
-          font-family: var(--font-sans);
-        }
-
-        .db-btn-secondary:hover {
-          border-color: var(--accent);
-          color: var(--accent);
-        }
-
-        /* ===== LOADING / EMPTY ===== */
-
-        .db-loading-box {
-          min-height: 220px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 18px;
-          border: 1px solid var(--border-soft);
-          background: var(--surface);
-        }
-
-        .db-loading-inner {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 10px;
-          color: var(--text-muted);
-        }
-
-        .db-spin {
-          animation: db-spin 0.8s linear infinite;
-          color: var(--accent);
-        }
-
-        @keyframes db-spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .db-empty-box {
-          border-radius: 18px;
-          border: 1.5px dashed var(--border);
-          background: var(--surface);
-          padding: 48px 24px;
-          text-align: center;
-        }
-
-        .db-empty-icon {
-          width: 56px;
-          height: 56px;
-          border-radius: 16px;
-          background: var(--success-bg);
-          color: var(--success);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin: 0 auto;
-        }
-
-        .db-empty-title {
-          font-size: 17px;
-          font-weight: 600;
-          margin: 18px 0 0;
-        }
-
-        .db-empty-desc {
+        .pg-section-desc {
           font-size: 13.5px;
           color: var(--text-muted);
-          margin: 8px auto 0;
-          max-width: 380px;
-          line-height: 1.6;
+          margin: 4px 0 0;
         }
 
-        /* ===== COMPANY CARDS ===== */
+        /* ---------- COMPANY CARDS ---------- */
 
-        .db-company-grid {
+        .pg-company-grid {
           display: grid;
-          gap: 16px;
           grid-template-columns: 1fr;
+          gap: 16px;
         }
 
-        @media (min-width: 768px) {
-          .db-company-grid {
+        @media (min-width: 720px) {
+          .pg-company-grid {
             grid-template-columns: 1fr 1fr;
           }
         }
 
-        @media (min-width: 1280px) {
-          .db-company-grid {
-            grid-template-columns: repeat(3, 1fr);
-          }
-        }
-
-        .db-company-card {
+        .pg-company {
           width: 100%;
           text-align: left;
-          border-radius: 18px;
-          border: 1px solid var(--border-soft);
           background: var(--surface);
-          padding: 20px;
-          cursor: pointer;
-          transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
-          font-family: var(--font-sans);
-        }
-
-        .db-company-card:hover {
-          border-color: var(--accent);
-          transform: translateY(-2px);
-          box-shadow: var(--shadow);
-        }
-
-        .db-company-top {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 12px;
-        }
-
-        .db-company-left {
-          display: flex;
-          min-width: 0;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .db-company-logo {
-          width: 52px;
-          height: 52px;
-          border-radius: 12px;
           border: 1px solid var(--border);
-          background: var(--surface-2);
+          border-radius: 16px;
+          padding: 18px;
+          cursor: pointer;
+          color: inherit;
+          box-shadow: var(--shadow);
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+        }
+
+        .pg-company:hover {
+          border-color: var(--primary);
+          transform: translateY(-2px);
+          box-shadow: var(--shadow-lift);
+        }
+
+        .pg-company-top {
           display: flex;
           align-items: center;
-          justify-content: center;
+          gap: 13px;
+          min-width: 0;
+        }
+
+        .pg-avatar {
+          width: 50px;
+          height: 50px;
+          border-radius: 14px;
           flex-shrink: 0;
+          display: grid;
+          place-items: center;
+          font-family: var(--font-display);
+          font-weight: 700;
+          font-size: 17px;
+          letter-spacing: 0.01em;
           overflow: hidden;
         }
 
-        .db-company-logo img {
+        .pg-avatar img {
           width: 100%;
           height: 100%;
           object-fit: contain;
           padding: 6px;
+          background: #ffffff;
         }
 
-        .db-company-name {
-          font-size: 14.5px;
+        .pg-avatar[data-tone="0"] { background: var(--tone-0-bg); color: var(--tone-0); }
+        .pg-avatar[data-tone="1"] { background: var(--tone-1-bg); color: var(--tone-1); }
+        .pg-avatar[data-tone="2"] { background: var(--tone-2-bg); color: var(--tone-2); }
+        .pg-avatar[data-tone="3"] { background: var(--tone-3-bg); color: var(--tone-3); }
+        .pg-avatar[data-tone="4"] { background: var(--tone-4-bg); color: var(--tone-4); }
+        .pg-avatar[data-tone="5"] { background: var(--tone-5-bg); color: var(--tone-5); }
+
+        .pg-company-info {
+          min-width: 0;
+          flex: 1;
+        }
+
+        .pg-company-name {
+          font-size: 15.5px;
           font-weight: 600;
           margin: 0;
           white-space: nowrap;
@@ -674,8 +697,8 @@ export default function Dashboard() {
           text-overflow: ellipsis;
         }
 
-        .db-company-email {
-          font-size: 12px;
+        .pg-company-email {
+          font-size: 12.5px;
           color: var(--text-muted);
           margin: 3px 0 0;
           white-space: nowrap;
@@ -683,420 +706,392 @@ export default function Dashboard() {
           text-overflow: ellipsis;
         }
 
-        .db-chevron {
-          width: 30px;
-          height: 30px;
-          border-radius: 9px;
-          color: var(--text-faint);
+        .pg-company-details {
           display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-          transition: background 0.2s, color 0.2s;
+          flex-direction: column;
+          gap: 9px;
+          padding: 14px;
+          background: var(--surface-2);
+          border-radius: 12px;
         }
 
-        .db-company-card:hover .db-chevron {
-          background: var(--success-bg);
-          color: var(--success);
-        }
-
-        .db-divider {
-          height: 1px;
-          background: var(--border-soft);
-          margin: 18px 0;
-        }
-
-        .db-detail-row {
+        .pg-detail {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           gap: 9px;
           font-size: 12.5px;
           color: var(--text-muted);
-          margin-bottom: 10px;
+          line-height: 1.4;
         }
 
-        .db-detail-row:last-child {
-          margin-bottom: 0;
-        }
-
-        .db-detail-row svg {
+        .pg-detail svg {
           flex-shrink: 0;
+          margin-top: 1px;
           color: var(--text-faint);
         }
 
-        .db-company-bottom {
-          margin-top: 18px;
+        .pg-company-foot {
           display: flex;
           align-items: center;
           justify-content: space-between;
         }
 
-        .db-status-badge {
+        .pg-status {
           display: inline-flex;
           align-items: center;
           gap: 6px;
           border-radius: 999px;
-          padding: 4px 10px;
-          font-size: 11px;
+          padding: 4px 11px 4px 9px;
+          font-size: 12px;
           font-weight: 600;
-          background: var(--success-bg);
+          background: var(--success-soft);
           color: var(--success);
         }
 
-        .db-status-dot {
+        .pg-status::before {
+          content: "";
           width: 6px;
           height: 6px;
           border-radius: 999px;
-          background: var(--success);
+          background: currentColor;
         }
 
-        .db-manage-label {
-          font-size: 12px;
-          font-weight: 500;
-          color: var(--text-faint);
+        .pg-status[data-active="false"] {
+          background: var(--muted-pill);
+          color: var(--text-muted);
         }
 
-        .db-company-card:hover .db-manage-label {
-          color: var(--accent);
+        .pg-manage {
+          display: inline-flex;
+          align-items: center;
+          gap: 2px;
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--text-muted);
+          transition: color 0.15s;
         }
 
-        /* ===== QUICK ACTIONS ===== */
-
-        .db-quick-grid {
-          display: grid;
-          gap: 16px;
-          grid-template-columns: 1fr;
+        .pg-company:hover .pg-manage {
+          color: var(--primary);
         }
 
-        @media (min-width: 640px) {
-          .db-quick-grid {
-            grid-template-columns: 1fr 1fr;
-          }
+        /* Loading skeleton */
+
+        .pg-skeleton {
+          height: 246px;
+          border-radius: 16px;
+          border: 1px solid var(--border);
+          background:
+            linear-gradient(100deg, transparent 30%, var(--surface-2) 50%, transparent 70%) 0 0 / 220% 100%,
+            var(--surface);
+          animation: pg-shimmer 1.4s ease-in-out infinite;
         }
 
-        @media (min-width: 1024px) {
-          .db-quick-grid {
-            grid-template-columns: repeat(3, 1fr);
-          }
+        @keyframes pg-shimmer {
+          from { background-position: 120% 0, 0 0; }
+          to { background-position: -120% 0, 0 0; }
         }
 
-        .db-quick-card {
+        /* Empty */
+
+        .pg-empty {
+          border: 1.5px dashed var(--border);
           border-radius: 18px;
-          border: 1px solid var(--border-soft);
           background: var(--surface);
-          padding: 20px;
-          text-align: left;
-          cursor: pointer;
-          transition: border-color 0.2s, transform 0.15s;
-          font-family: var(--font-sans);
+          padding: 52px 24px;
+          text-align: center;
+        }
+
+        .pg-empty-icon {
+          width: 56px;
+          height: 56px;
+          border-radius: 16px;
+          background: var(--primary-soft);
+          color: var(--primary);
+          display: grid;
+          place-items: center;
+          margin: 0 auto;
+        }
+
+        .pg-empty-title {
+          font-family: var(--font-display);
+          font-size: 20px;
+          font-weight: 600;
+          margin: 18px 0 0;
+        }
+
+        .pg-empty-desc {
+          font-size: 14px;
+          color: var(--text-muted);
+          margin: 8px auto 22px;
+          max-width: 360px;
+          line-height: 1.6;
+        }
+
+        /* ---------- QUICK ACTIONS (side panel) ---------- */
+
+        .pg-panel {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 18px;
+          box-shadow: var(--shadow);
+          overflow: hidden;
+        }
+
+        .pg-panel-title {
+          font-family: var(--font-display);
+          font-size: 17px;
+          font-weight: 600;
+          letter-spacing: -0.01em;
+          margin: 0;
+          padding: 18px 20px 14px;
+        }
+
+        .pg-action {
           width: 100%;
-        }
-
-        .db-quick-card:hover {
-          border-color: var(--accent);
-          transform: translateY(-2px);
-        }
-
-        .db-quick-icon {
-          width: 42px;
-          height: 42px;
-          border-radius: 12px;
-          background: var(--success-bg);
-          color: var(--success);
           display: flex;
           align-items: center;
-          justify-content: center;
-          margin-bottom: 16px;
+          gap: 14px;
+          padding: 15px 20px;
+          background: transparent;
+          border: 0;
+          border-top: 1px solid var(--border);
+          color: inherit;
+          text-align: left;
+          cursor: pointer;
+          transition: background 0.15s;
         }
 
-        .db-quick-icon.cc-muted {
-          background: var(--surface-3);
-          color: var(--text-faint);
+        .pg-action:hover {
+          background: var(--surface-2);
         }
 
-        .db-quick-title {
-          font-size: 14.5px;
+        .pg-action-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 11px;
+          display: grid;
+          place-items: center;
+          flex-shrink: 0;
+        }
+
+        .pg-action-text {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .pg-action-title {
+          font-size: 14px;
           font-weight: 600;
           margin: 0;
         }
 
-        .db-quick-desc {
+        .pg-action-desc {
           font-size: 12.5px;
           color: var(--text-muted);
-          margin: 4px 0 0;
+          margin: 2px 0 0;
+          line-height: 1.4;
         }
 
-        .db-quick-cta {
-          margin-top: 16px;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--accent);
+        .pg-action > svg {
+          color: var(--text-faint);
+          flex-shrink: 0;
+          transition: transform 0.15s, color 0.15s;
         }
 
-        /* ===== MODAL ===== */
+        .pg-action:hover > svg {
+          color: var(--primary);
+          transform: translateX(2px);
+        }
 
-        .cc-modal-backdrop {
+        /* ---------- MODAL ---------- */
+
+        .pg-backdrop {
           position: fixed;
           inset: 0;
           z-index: 100;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 24px;
-          background: rgba(10, 9, 6, 0.55);
-          backdrop-filter: blur(3px);
-          animation: cc-fade-in 0.18s ease;
+          padding: 20px;
+          background: rgba(8, 13, 30, 0.6);
+          backdrop-filter: blur(4px);
+          animation: pg-fade 0.18s ease;
         }
 
-        .cc-modal {
+        .pg-modal {
           width: 100%;
-          max-width: 440px;
-          max-height: 88vh;
+          max-width: 460px;
+          max-height: 90vh;
           overflow-y: auto;
           background: var(--surface);
-          border: 1px solid var(--border-soft);
-          border-radius: 20px;
-          box-shadow: var(--shadow);
-          animation: cc-modal-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+          border: 1px solid var(--border);
+          border-radius: 22px;
+          box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.5);
+          animation: pg-pop 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
-        @keyframes cc-fade-in {
-          from {
-            opacity: 0;
-          }
-
-          to {
-            opacity: 1;
-          }
+        @keyframes pg-fade {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
 
-        @keyframes cc-modal-in {
-          from {
-            opacity: 0;
-            transform: translateY(10px) scale(0.98);
-          }
-
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
+        @keyframes pg-pop {
+          from { opacity: 0; transform: translateY(10px) scale(0.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        .db-modal-head {
+        .pg-modal-head {
           display: flex;
-          align-items: flex-start;
+          align-items: center;
           justify-content: space-between;
           gap: 12px;
           padding: 20px 22px;
-          border-bottom: 1px solid var(--border-soft);
+          border-bottom: 1px solid var(--border);
         }
 
-        .db-modal-head-left {
+        .pg-modal-head-left {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 13px;
           min-width: 0;
         }
 
-        .db-modal-logo {
-          width: 46px;
-          height: 46px;
-          border-radius: 12px;
-          border: 1px solid var(--border);
-          background: var(--surface-2);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-          overflow: hidden;
-        }
-
-        .db-modal-logo img {
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-          padding: 6px;
-        }
-
-        .db-modal-title {
-          font-family: var(--font-serif);
-          font-size: 16px;
+        .pg-modal-title {
+          font-family: var(--font-display);
+          font-size: 18px;
           font-weight: 600;
+          letter-spacing: -0.01em;
           margin: 0;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
 
-        .db-modal-sub {
-          font-size: 12px;
+        .pg-modal-sub {
+          font-size: 12.5px;
           color: var(--text-muted);
           margin: 2px 0 0;
         }
 
-        .cc-modal-close {
-          width: 34px;
-          height: 34px;
-          border-radius: 10px;
-          border: 1px solid var(--border);
-          background: var(--surface-2);
-          color: var(--text-muted);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          flex-shrink: 0;
-          transition: color 0.2s, border-color 0.2s;
-        }
-
-        .cc-modal-close:hover {
-          color: var(--text);
-          border-color: var(--text-muted);
-        }
-
-        .db-modal-body {
+        .pg-modal-body {
           padding: 22px;
-        }
-
-        .db-modal-info {
-          border-radius: 14px;
-          border: 1px solid var(--border-soft);
-          background: var(--surface-2);
-          padding: 16px;
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 18px;
         }
 
-        .db-modal-row {
+        .pg-modal-info {
           display: flex;
-          align-items: flex-start;
+          flex-direction: column;
+          gap: 11px;
+          padding: 16px;
+          border-radius: 14px;
+          background: var(--surface-2);
+          font-size: 13.5px;
+        }
+
+        .pg-modal-info .pg-detail {
+          font-size: 13.5px;
+          word-break: break-word;
+        }
+
+        .pg-modal-actions {
+          display: flex;
+          flex-direction: column;
           gap: 10px;
-          font-size: 13px;
-          color: var(--text-muted);
         }
 
-        .db-modal-row svg {
-          flex-shrink: 0;
-          margin-top: 1px;
-          color: var(--text-faint);
-        }
-
-        .db-modal-actions {
-          margin-top: 20px;
-          display: grid;
-          gap: 12px;
-        }
-
-        @media (min-width: 480px) {
-          .db-modal-actions {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
-
-        .db-modal-action {
+        .pg-modal-action {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 13px;
+          padding: 13px 14px;
           border-radius: 14px;
-          border: 1px solid var(--border-soft);
-          background: var(--surface-2);
-          padding: 14px;
+          border: 1px solid var(--border);
+          background: var(--surface);
+          color: inherit;
           text-align: left;
           cursor: pointer;
-          transition: border-color 0.2s, background 0.2s;
-          font-family: var(--font-sans);
+          transition: border-color 0.15s, background 0.15s;
         }
 
-        .db-modal-action:hover {
-          border-color: var(--accent);
-          background: var(--surface);
+        .pg-modal-action:hover {
+          border-color: var(--primary);
+          background: var(--surface-2);
         }
 
-        .db-modal-action-icon {
+        .pg-modal-action .pg-action-icon {
           width: 38px;
           height: 38px;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
         }
 
-        .db-modal-action-title {
-          font-size: 13px;
-          font-weight: 600;
-          margin: 0;
+        .pg-modal-foot {
+          padding: 0 22px 22px;
         }
 
-        .db-modal-action-desc {
-          font-size: 11.5px;
-          color: var(--text-muted);
-          margin: 2px 0 0;
-        }
-
-        .db-modal-footer {
-          border-top: 1px solid var(--border-soft);
-          padding: 16px 22px;
-        }
-
-        .db-btn-close-modal {
+        .pg-btn-close {
           width: 100%;
-          border: 1px solid var(--border);
           background: var(--surface-2);
+          border-color: var(--border);
           color: var(--text-muted);
-          border-radius: 12px;
-          padding: 11px 16px;
-          font-size: 13px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: border-color 0.2s, color 0.2s;
-          font-family: var(--font-sans);
         }
 
-        .db-btn-close-modal:hover {
-          border-color: var(--text-muted);
+        .pg-btn-close:hover {
           color: var(--text);
+          border-color: var(--text-faint);
+        }
+
+        /* ---------- RESPONSIVE / MOTION ---------- */
+
+        @media (max-width: 640px) {
+          .pg-header-inner { padding: 12px 16px; }
+          .pg-main { padding: 20px 16px 56px; }
+          .pg-hero { padding: 28px 22px; border-radius: 20px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .pg-root *,
+          .pg-root *::before,
+          .pg-root *::after {
+            animation: none !important;
+            transition: none !important;
+          }
         }
       `}</style>
 
-      {/* ================= NAVBAR ================= */}
+      {/* ================= HEADER ================= */}
 
-      <header className="db-header">
-        <div className="db-header-inner">
-          <div className="db-logo">
-            <div className="db-logo-icon">
+      <header className="pg-header">
+        <div className="pg-header-inner">
+          <div className="pg-brand">
+            <div className="pg-brand-mark">
               <LayoutDashboard size={20} />
             </div>
 
             <div>
-              <h1 className="db-title">Payslip Generator</h1>
-              <p className="db-subtitle">Admin panel</p>
+              <h1 className="pg-brand-name">Payslip Generator</h1>
+              <p className="pg-brand-sub">Admin panel</p>
             </div>
           </div>
 
-          <div className="db-header-right">
-            <div className="db-profile">
-              <p className="db-profile-name">Admin</p>
-              <p className="db-profile-role">Administrator</p>
-            </div>
+          <div className="pg-header-right">
+            <div className="pg-user">
+              <div className="pg-user-avatar">A</div>
 
-            <div className="db-avatar">A</div>
+              <div className="pg-user-text">
+                <p className="pg-user-name">Admin</p>
+                <p className="pg-user-role">Administrator</p>
+              </div>
+            </div>
 
             <button
               type="button"
-              className="db-theme-btn"
+              className="pg-icon-btn"
               onClick={toggleTheme}
-              aria-label="Toggle dark and light mode"
+              aria-label="Switch between light and dark theme"
             >
-              {theme === "dark" ? (
-                <Sun size={18} />
-              ) : (
-                <Moon size={18} />
-              )}
+              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
             </button>
           </div>
         </div>
@@ -1104,130 +1099,128 @@ export default function Dashboard() {
 
       {/* ================= MAIN ================= */}
 
-      <main className="db-main">
+      <main className="pg-main">
+        {/* ---------- HERO ---------- */}
 
-        {/* ================= WELCOME ================= */}
-
-        <div className="db-welcome">
+        <section className="pg-hero">
           <div>
-            <p className="db-welcome-eyebrow">
-              Admin dashboard
+            <p className="pg-hero-date">{today}</p>
+
+            <h2 className="pg-hero-title">{getGreeting()}, Admin</h2>
+
+            <p className="pg-hero-desc">
+              Manage your companies, employees and payslips from one place.
             </p>
 
-            <h2 className="db-welcome-title">
-              Welcome back, Admin
-            </h2>
-
-            <p className="db-welcome-desc">
-              Manage your companies, employees and payslips
-              from one place.
-            </p>
-          </div>
-
-          <button
-            onClick={() => navigate("/CreateCompany")}
-            className="db-btn-primary"
-          >
-            <Plus size={18} />
-            Create company
-          </button>
-        </div>
-
-        {/* ================= STATS ================= */}
-
-        <div className="db-stats-grid">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-
-            return (
-              <div
-                key={stat.title}
-                className="db-stat-card"
-              >
-                <div className="db-stat-icon">
-                  <Icon size={21} />
-                </div>
-
-                <p className="db-stat-title">
-                  {stat.title}
-                </p>
-
-                <h3 className="db-stat-value">
-                  {stat.value}
-                </h3>
-
-                <p className="db-stat-desc">
-                  {stat.description}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* ================= COMPANIES ================= */}
-
-        <section className="db-section">
-          <div className="db-section-head">
-            <div>
-              <h3 className="db-section-title">
-                Your companies
-              </h3>
-
-              <p className="db-section-desc">
-                Select a company to manage its profile and employees.
-              </p>
-            </div>
-
-            {companies.length > 0 && (
+            <div className="pg-hero-actions">
               <button
+                type="button"
+                className="pg-btn pg-btn-light"
                 onClick={() => navigate("/CreateCompany")}
-                className="db-btn-secondary"
               >
-                <Plus size={16} />
-                Add company
+                <Plus size={17} />
+                Create company
               </button>
-            )}
+
+              <button
+                type="button"
+                className="pg-btn pg-btn-ghost"
+                onClick={handleViewTemplates}
+              >
+                <Files size={17} />
+                Salary templates
+              </button>
+            </div>
           </div>
 
-          {/* LOADING */}
+          {/* Decorative payslip */}
+          <div className="pg-sheet-wrap" aria-hidden="true">
+            <div className="pg-sheet-back" />
 
-          {loadingCompanies && (
-            <div className="db-loading-box">
-              <div className="db-loading-inner">
-                <Loader2
-                  size={26}
-                  className="db-spin"
-                />
+            <div className="pg-sheet">
+              <div className="pg-sheet-head">
+                <div className="pg-sheet-logo" />
+                <div style={{ flex: 1, display: "grid", gap: 6 }}>
+                  <div className="pg-bar" style={{ width: "62%" }} />
+                  <div className="pg-bar" style={{ width: "38%" }} />
+                </div>
+              </div>
 
-                <p style={{ fontSize: "13px" }}>
-                  Loading companies...
-                </p>
+              <div className="pg-sheet-cols">
+                {[0, 1].map((col) => (
+                  <div className="pg-sheet-col" key={col}>
+                    {[0, 1, 2, 3].map((row) => (
+                      <div className="pg-sheet-row" key={row}>
+                        <div className="pg-bar" style={{ width: "48%" }} />
+                        <div className="pg-bar" style={{ width: "26%" }} />
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              <div className="pg-sheet-total">
+                <div className="pg-bar" style={{ width: 70 }} />
+                <div className="pg-bar" />
               </div>
             </div>
-          )}
+          </div>
+        </section>
 
-          {/* EMPTY */}
+        {/* ---------- CONTENT ---------- */}
 
-          {!loadingCompanies &&
-            companies.length === 0 && (
-              <div className="db-empty-box">
-                <div className="db-empty-icon">
+        <div className="pg-layout">
+          {/* COMPANIES */}
+
+          <section>
+            <div className="pg-section-head">
+              <div>
+                <h3 className="pg-section-title">Your companies</h3>
+                <p className="pg-section-desc">
+                  Select a company to manage its profile and employees.
+                </p>
+              </div>
+
+              {companies.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/CreateCompany")}
+                  className="pg-btn pg-btn-outline"
+                >
+                  <Plus size={16} />
+                  Add company
+                </button>
+              )}
+            </div>
+
+            {/* LOADING */}
+
+            {loadingCompanies && (
+              <div className="pg-company-grid" aria-busy="true">
+                <div className="pg-skeleton" />
+                <div className="pg-skeleton" />
+              </div>
+            )}
+
+            {/* EMPTY */}
+
+            {!loadingCompanies && companies.length === 0 && (
+              <div className="pg-empty">
+                <div className="pg-empty-icon">
                   <Building2 size={26} />
                 </div>
 
-                <h4 className="db-empty-title">
-                  No companies yet
-                </h4>
+                <h4 className="pg-empty-title">No companies yet</h4>
 
-                <p className="db-empty-desc">
-                  Create your first company to start adding
-                  employees and generating professional payslips.
+                <p className="pg-empty-desc">
+                  Create your first company to start adding employees and
+                  generating payslips.
                 </p>
 
                 <button
+                  type="button"
                   onClick={() => navigate("/CreateCompany")}
-                  className="db-btn-primary"
-                  style={{ marginTop: "22px" }}
+                  className="pg-btn pg-btn-primary"
                 >
                   <Plus size={17} />
                   Create company
@@ -1235,383 +1228,300 @@ export default function Dashboard() {
               </div>
             )}
 
-          {/* COMPANY CARDS */}
+            {/* COMPANY CARDS */}
 
-          {!loadingCompanies &&
-            companies.length > 0 && (
-              <div className="db-company-grid">
+            {!loadingCompanies && companies.length > 0 && (
+              <div className="pg-company-grid">
                 {companies.map((company) => (
                   <button
                     key={company._id}
                     type="button"
-                    onClick={() =>
-                      setSelectedCompany(company)
-                    }
-                    className="db-company-card"
+                    onClick={() => setSelectedCompany(company)}
+                    className="pg-company"
                   >
-                    <div className="db-company-top">
-                      <div className="db-company-left">
-                        <div className="db-company-logo">
-                          {company.logoUrl ? (
-                            <img
-                              src={company.logoUrl}
-                              alt={company.name}
-                            />
-                          ) : (
-                            <Building2
-                              size={22}
-                              style={{
-                                color:
-                                  "var(--text-faint)",
-                              }}
-                            />
-                          )}
-                        </div>
-
-                        <div style={{ minWidth: 0 }}>
-                          <h4 className="db-company-name">
-                            {company.name}
-                          </h4>
-
-                          <p className="db-company-email">
-                            {company.email}
-                          </p>
-                        </div>
+                    <div className="pg-company-top">
+                      <div
+                        className="pg-avatar"
+                        data-tone={getTone(company.name)}
+                      >
+                        {company.logoUrl ? (
+                          <img src={company.logoUrl} alt={company.name} />
+                        ) : (
+                          getInitials(company.name)
+                        )}
                       </div>
 
-                      <div className="db-chevron">
-                        <ChevronRight size={17} />
+                      <div className="pg-company-info">
+                        <h4 className="pg-company-name">{company.name}</h4>
+                        <p className="pg-company-email">{company.email}</p>
                       </div>
                     </div>
 
-                    <div className="db-divider" />
-
-                    <div>
-                      <div className="db-detail-row">
-                        <Phone size={13} />
+                    <div className="pg-company-details">
+                      <div className="pg-detail">
+                        <Phone size={14} />
                         <span>
-                          {company.contactNumber ||
-                            "No contact number"}
+                          {company.contactNumber || "No contact number"}
                         </span>
                       </div>
 
-                      <div className="db-detail-row">
-                        <MapPin size={13} />
-                        <span>
-                          {company.address ||
-                            "No address available"}
-                        </span>
+                      <div className="pg-detail">
+                        <MapPin size={14} />
+                        <span>{company.address || "No address available"}</span>
                       </div>
                     </div>
 
-                    <div className="db-company-bottom">
-                      <span className="db-status-badge">
-                        <span className="db-status-dot" />
-
-                        {company.isActive
-                          ? "Active"
-                          : "Inactive"}
+                    <div className="pg-company-foot">
+                      <span
+                        className="pg-status"
+                        data-active={company.isActive ? "true" : "false"}
+                      >
+                        {company.isActive ? "Active" : "Inactive"}
                       </span>
 
-                      <span className="db-manage-label">
+                      <span className="pg-manage">
                         Manage company
+                        <ChevronRight size={16} />
                       </span>
                     </div>
                   </button>
                 ))}
               </div>
             )}
-        </section>
+          </section>
 
-        {/* ================= QUICK ACTIONS ================= */}
+          {/* QUICK ACTIONS */}
 
-        <section className="db-section">
-          <h3
-            className="db-section-title"
-            style={{ marginBottom: "18px" }}
-          >
-            Quick actions
-          </h3>
+          <aside className="pg-side">
+            <div className="pg-panel">
+              <h3 className="pg-panel-title">Quick actions</h3>
 
-          <div className="db-quick-grid">
+              <button
+                type="button"
+                className="pg-action"
+                onClick={() => navigate("/CreateCompany")}
+              >
+                <div
+                  className="pg-action-icon"
+                  style={{
+                    background: "var(--tone-0-bg)",
+                    color: "var(--tone-0)",
+                  }}
+                >
+                  <Plus size={19} />
+                </div>
 
-            {/* ADD COMPANY */}
+                <div className="pg-action-text">
+                  <p className="pg-action-title">Add company</p>
+                  <p className="pg-action-desc">Create a new company profile</p>
+                </div>
 
-            <button
-              onClick={() => navigate("/CreateCompany")}
-              className="db-quick-card"
-            >
-              <div className="db-quick-icon">
-                <Plus size={20} />
-              </div>
+                <ChevronRight size={18} />
+              </button>
 
-              <h4 className="db-quick-title">
-                Add company
-              </h4>
+              <button
+                type="button"
+                className="pg-action"
+                onClick={handleManageEmployees}
+              >
+                <div
+                  className="pg-action-icon"
+                  style={{
+                    background: "var(--tone-1-bg)",
+                    color: "var(--tone-1)",
+                  }}
+                >
+                  <Users size={19} />
+                </div>
 
-              <p className="db-quick-desc">
-                Create a new company profile
-              </p>
+                <div className="pg-action-text">
+                  <p className="pg-action-title">Manage employees</p>
+                  <p className="pg-action-desc">
+                    View and manage all registered employees
+                  </p>
+                </div>
 
-              <div className="db-quick-cta">
-                Continue
-                <ArrowRight size={15} />
-              </div>
-            </button>
+                <ChevronRight size={18} />
+              </button>
 
-            {/* MANAGE EMPLOYEES */}
+              <button
+                type="button"
+                className="pg-action"
+                onClick={handleViewTemplates}
+              >
+                <div
+                  className="pg-action-icon"
+                  style={{
+                    background: "var(--tone-4-bg)",
+                    color: "var(--tone-4)",
+                  }}
+                >
+                  <Files size={19} />
+                </div>
 
-            <button
-              type="button"
-              onClick={handleManageEmployees}
-              className="db-quick-card"
-            >
-              <div className="db-quick-icon">
-                <Users size={20} />
-              </div>
+                <div className="pg-action-text">
+                  <p className="pg-action-title">Salary templates</p>
+                  <p className="pg-action-desc">
+                    View available payslip templates
+                  </p>
+                </div>
 
-              <h4 className="db-quick-title">
-                Manage employees
-              </h4>
-
-              <p className="db-quick-desc">
-                View and manage all registered employees
-              </p>
-
-              <div className="db-quick-cta">
-                Manage employees
-                <ArrowRight size={15} />
-              </div>
-            </button>
-
-            {/* SALARY TEMPLATES */}
-
-            <button
-              type="button"
-              onClick={handleViewTemplates}
-              className="db-quick-card"
-            >
-              <div className="db-quick-icon">
-                <Files size={20} />
-              </div>
-
-              <h4 className="db-quick-title">
-                Salary templates
-              </h4>
-
-              <p className="db-quick-desc">
-                View available payslip templates
-              </p>
-
-              <div className="db-quick-cta">
-                View templates
-                <ArrowRight size={15} />
-              </div>
-            </button>
-
-          </div>
-        </section>
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </aside>
+        </div>
       </main>
 
       {/* ================= COMPANY MODAL ================= */}
 
       {selectedCompany && (
-        <div
-          className="cc-modal-backdrop"
-          onMouseDown={closeModal}
-        >
+        <div className="pg-backdrop" onMouseDown={closeModal}>
           <div
-            className="cc-modal"
-            onMouseDown={(e) =>
-              e.stopPropagation()
-            }
+            className="pg-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${selectedCompany.name} management`}
+            onMouseDown={(e) => e.stopPropagation()}
           >
-
-            <div className="db-modal-head">
-              <div className="db-modal-head-left">
-
-                <div className="db-modal-logo">
+            <div className="pg-modal-head">
+              <div className="pg-modal-head-left">
+                <div
+                  className="pg-avatar"
+                  data-tone={getTone(selectedCompany.name)}
+                >
                   {selectedCompany.logoUrl ? (
                     <img
                       src={selectedCompany.logoUrl}
                       alt={selectedCompany.name}
                     />
                   ) : (
-                    <Building2
-                      size={20}
-                      style={{
-                        color: "var(--text-faint)",
-                      }}
-                    />
+                    getInitials(selectedCompany.name)
                   )}
                 </div>
 
                 <div style={{ minWidth: 0 }}>
-                  <h3 className="db-modal-title">
-                    {selectedCompany.name}
-                  </h3>
-
-                  <p className="db-modal-sub">
-                    Company management
-                  </p>
+                  <h3 className="pg-modal-title">{selectedCompany.name}</h3>
+                  <p className="pg-modal-sub">Company management</p>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={closeModal}
-                className="cc-modal-close"
+                className="pg-icon-btn"
                 aria-label="Close"
               >
                 <X size={17} />
               </button>
             </div>
 
-            <div className="db-modal-body">
+            <div className="pg-modal-body">
+              <div className="pg-modal-info">
+                <div className="pg-detail">
+                  <Mail size={15} />
+                  <span>{selectedCompany.email}</span>
+                </div>
 
-              <div className="db-modal-info">
-
-                <div className="db-modal-row">
-                  <Mail size={14} />
+                <div className="pg-detail">
+                  <Phone size={15} />
                   <span>
-                    {selectedCompany.email}
+                    {selectedCompany.contactNumber || "No contact number"}
                   </span>
                 </div>
 
-                <div className="db-modal-row">
-                  <Phone size={14} />
+                <div className="pg-detail">
+                  <MapPin size={15} />
                   <span>
-                    {selectedCompany.contactNumber ||
-                      "No contact number"}
-                  </span>
-                </div>
-
-                <div className="db-modal-row">
-                  <MapPin size={14} />
-                  <span>
-                    {selectedCompany.address ||
-                      "No address available"}
+                    {selectedCompany.address || "No address available"}
                   </span>
                 </div>
 
                 {selectedCompany.website && (
-                  <div className="db-modal-row">
-                    <Globe size={14} />
-                    <span>
-                      {selectedCompany.website}
-                    </span>
+                  <div className="pg-detail">
+                    <Globe size={15} />
+                    <span>{selectedCompany.website}</span>
                   </div>
                 )}
-
               </div>
 
-              <div className="db-modal-actions">
-
-                {/* EDIT COMPANY */}
-
+              <div className="pg-modal-actions">
                 <button
                   type="button"
                   onClick={handleEditCompany}
-                  className="db-modal-action"
+                  className="pg-modal-action"
                 >
                   <div
-                    className="db-modal-action-icon"
+                    className="pg-action-icon"
                     style={{
-                      background:
-                        "var(--success-bg)",
-                      color:
-                        "var(--success)",
+                      background: "var(--tone-0-bg)",
+                      color: "var(--tone-0)",
                     }}
                   >
                     <Pencil size={16} />
                   </div>
 
-                  <div>
-                    <p className="db-modal-action-title">
-                      Edit company
-                    </p>
-
-                    <p className="db-modal-action-desc">
-                      Update company details
-                    </p>
+                  <div className="pg-action-text">
+                    <p className="pg-action-title">Edit company</p>
+                    <p className="pg-action-desc">Update company details</p>
                   </div>
                 </button>
-
-                {/* ADD EMPLOYEE */}
 
                 <button
                   type="button"
                   onClick={handleAddEmployee}
-                  className="db-modal-action"
+                  className="pg-modal-action"
                 >
                   <div
-                    className="db-modal-action-icon"
+                    className="pg-action-icon"
                     style={{
-                      background:
-                        "var(--surface-3)",
-                      color:
-                        "var(--accent)",
+                      background: "var(--tone-3-bg)",
+                      color: "var(--tone-3)",
                     }}
                   >
                     <UserPlus size={16} />
                   </div>
 
-                  <div>
-                    <p className="db-modal-action-title">
-                      Add employee
-                    </p>
-
-                    <p className="db-modal-action-desc">
-                      Add employee to company
-                    </p>
+                  <div className="pg-action-text">
+                    <p className="pg-action-title">Add employee</p>
+                    <p className="pg-action-desc">Add an employee to this company</p>
                   </div>
                 </button>
 
-                {/* MANAGE EMPLOYEES */}
-
                 <button
                   type="button"
-                  onClick={
-                    handleManageCompanyEmployees
-                  }
-                  className="db-modal-action"
+                  onClick={handleManageCompanyEmployees}
+                  className="pg-modal-action"
                 >
                   <div
-                    className="db-modal-action-icon"
+                    className="pg-action-icon"
                     style={{
-                      background:
-                        "var(--success-bg)",
-                      color:
-                        "var(--success)",
+                      background: "var(--tone-1-bg)",
+                      color: "var(--tone-1)",
                     }}
                   >
                     <Users size={16} />
                   </div>
 
-                  <div>
-                    <p className="db-modal-action-title">
-                      Manage employees
-                    </p>
-
-                    <p className="db-modal-action-desc">
+                  <div className="pg-action-text">
+                    <p className="pg-action-title">Manage employees</p>
+                    <p className="pg-action-desc">
                       View employees of this company
                     </p>
                   </div>
                 </button>
-
               </div>
             </div>
 
-            <div className="db-modal-footer">
+            <div className="pg-modal-foot">
               <button
                 type="button"
                 onClick={closeModal}
-                className="db-btn-close-modal"
+                className="pg-btn pg-btn-close"
               >
                 Close
               </button>
             </div>
-
           </div>
         </div>
       )}
