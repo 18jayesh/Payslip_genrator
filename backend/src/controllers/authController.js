@@ -2,8 +2,6 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const adminModel = require("../models/adminModel");
 
-const isProduction = process.env.NODE_ENV === "production";
-
 const cookieOption = {
     httpOnly: true,
     secure: true,
@@ -12,7 +10,6 @@ const cookieOption = {
 };
 
 const loginAdmin = async (req, res) => {
-
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -23,12 +20,10 @@ const loginAdmin = async (req, res) => {
     }
 
     try {
-
         const admin = await adminModel
             .findOne({ email })
             .select("+password");
 
-        // Admin not found
         if (!admin) {
             return res.status(401).json({
                 success: false,
@@ -36,7 +31,6 @@ const loginAdmin = async (req, res) => {
             });
         }
 
-        // Password check
         const isPasswordValid = await bcrypt.compare(
             password,
             admin.password
@@ -72,7 +66,6 @@ const loginAdmin = async (req, res) => {
         });
 
     } catch (error) {
-
         console.error("Login Error:", error);
 
         return res.status(500).json({
@@ -83,3 +76,4 @@ const loginAdmin = async (req, res) => {
 };
 
 module.exports = loginAdmin;
+
